@@ -1,6 +1,7 @@
 import express, { json } from "express";
 import dotenv, { configDotenv } from "dotenv";
 import authRoutes from "./routes/authRoutes.js";
+import userRoutes from "./routes/userRoutes.js"
 import productRoutes from "./routes/productRoutes.js";
 import mongoose from "mongoose";
 import errorHandler from "./middlewares/errorHandler.js";
@@ -28,7 +29,10 @@ const mongoUrl = process.env.MONGO
 
 const connectToDatabase = async () => {
     try {
-      await mongoose.connect(mongoUrl); 
+     const connectedDb = await mongoose.connect(mongoUrl); 
+     if (connectedDb) {app.listen(port, ()=>{
+    console.log(`Server is running on port: ${port}`);
+});};
       console.log('Connected to MongoDB');
     } catch (err) {
       console.log('Error connecting to MongoDB:', err);
@@ -42,31 +46,14 @@ app.get("/", (req , res)=>{
     res.send("Welcome from Backend")
 });
 
-
-app.listen(port, ()=>{
-    console.log(`Server is running on port: ${port}`);
-});
-
-
 app.use("/api/auth", authRoutes)
 app.use("/api/products", productRoutes);
+app.use("/api/users", userRoutes)
 app.use((req, res, next) => {
   res.status(404).json({ message: "Route not found" });
 });
 
 
-
 app.use(errorHandler);
 
 
-// verifyToken
-// export const verifyToken = (req, res, next) => {
-//   const token = req.cookies.access_token;
-//   if (!token) return res.status(403).json("Access denied!");
-
-//   jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
-//     if (err) return res.status(403).json("Invalid token!");
-//     req.user = user; // تخزين البيانات المسترجعة في الـ req
-//     next();
-//   });
-// };
