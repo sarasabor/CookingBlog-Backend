@@ -3,6 +3,7 @@ import dotenv, { configDotenv } from "dotenv";
 import authRoutes from "./routes/authRoutes.js";
 import userRoutes from "./routes/userRoutes.js"
 import productRoutes from "./routes/productRoutes.js";
+import recipeRoutes from "./routes/recipeRoutes.js"
 import mongoose from "mongoose";
 import errorHandler from "./middlewares/errorHandler.js";
 import cookieParser from "cookie-parser";
@@ -49,6 +50,8 @@ app.get("/", (req , res)=>{
 app.use("/api/auth", authRoutes)
 app.use("/api/products", productRoutes);
 app.use("/api/users", userRoutes)
+app.use("/api/recipes", recipeRoutes)
+
 app.use((req, res, next) => {
   res.status(404).json({ message: "Route not found" });
 });
