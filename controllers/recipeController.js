@@ -1,4 +1,5 @@
 import Recipe from "../models/Recipe.js";
+import Review from "../models/Review.js";
 import { createError } from "../utils/error.js";
 
 export const createRecipe = async (req, res, next)=>{
@@ -53,4 +54,19 @@ export const deleteRecipe = async (req, res, next)=>{
     }catch(err){
         next(err)
     }
-}
+};
+
+
+export const getRecipeWithReviews = async (req, res, next)=>{
+    try{
+        const recipe = await Recipe.findById(req.params.id).lean();
+        if(!recipe) return next(createError(404, "Recipe not found!"));
+
+        const reviews = await Review.find({recipeId: req.params.id});
+
+        res.status(200).json({...recipe, reviews});
+
+    }catch(err){
+        next(err)
+    };
+};
