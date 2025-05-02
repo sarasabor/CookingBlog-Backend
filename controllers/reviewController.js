@@ -27,15 +27,28 @@ export const createReview = async (req, res, next)=> {
     };
 };
 
-export const getReviewsByRecipeId = async (req, res, next)=>{
-    try{
-        const reviews = await Review.find({recipeId: req.params.recipeId});
-        res.status(200).json(reviews);
-    }catch(err){
-        next(err)
-    };
-};
-
+export const getReviewsByRecipeId = async (req, res, next) => {
+    const { page = 1, limit = 5 } = req.query;
+  
+    try {
+      const reviews = await Review.find({ recipeId: req.params.recipeId })
+        .skip((page - 1) * limit)
+        .limit(Number(limit))
+        .sort({ createdAt: -1 }); 
+  
+      const total = await Review.countDocuments({ recipeId: req.params.recipeId });
+  
+      res.status(200).json({
+        total,
+        page: Number(page),
+        totalPages: Math.ceil(total / limit),
+        reviews,
+      });
+    } catch (err) {
+      next(err);
+    }
+  };
+  
 
 export const deleteReview = async (req, res, next)=>{
     try{

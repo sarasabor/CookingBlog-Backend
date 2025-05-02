@@ -12,16 +12,31 @@ export const getUser = async (req, res, next)=>{
     };
 };
 
-export const getAllUsers = async (req, res, next)=>{
-    try{
-        const users = await User.find();
+export const getAllUsers = async (req, res, next) => {
+    const { page = 1, limit = 10, search = "" } = req.query;
+  
+    try {
+      const query = {
+        username: { $regex: search, $options: "i" }, 
+      };
+  
+      const users = await User.find(query)
+        .skip((page - 1) * limit)
+        .limit(Number(limit))
+        .select("-password")
 
-        res.status(200).json(users);
-
-    }catch(err){
-        next(err)
-    };
-};
+      const total = await User.countDocuments(query);
+  
+      res.status(200).json({
+        total,
+        page: Number(page),
+        totalPages: Math.ceil(total / limit),
+        users,
+      });
+    } catch (err) {
+      next(err);
+    }
+  };
 
 export const updateUser = async (req, res, next)=>{
     try{

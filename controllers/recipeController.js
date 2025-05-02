@@ -37,14 +37,30 @@ export const getRecipe = async (req, res, next)=>{
 };
 
 export const getAllRecipes = async (req, res, next)=>{
-    try{
-        const recipes = await Recipe.find();
-        res.status(200).json(recipes);
+    const {page = 1, limit = 10, search = ""} = req.query;
 
-    }catch(err){
-        next(err)
+    try {
+        const query = {
+          title: { $regex: search, $options: "i" },
+        };
+    
+        const recipes = await Recipe.find(query)
+          .skip((page - 1) * limit)
+          .limit(Number(limit));
+    
+        const total = await Recipe.countDocuments(query);
+    
+        res.status(200).json({
+          total,
+          page: Number(page),
+          totalPages: Math.ceil(total / limit),
+          recipes,
+        });
+      } catch (err) {
+        next(err);
+      }
     };
-};
+    
 
 export const deleteRecipe = async (req, res, next)=>{
     try{
