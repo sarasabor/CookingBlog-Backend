@@ -1,14 +1,19 @@
 import Recipe from "../models/Recipe.js";
 import Review from "../models/Review.js";
 import { createError } from "../utils/error.js";
+import { cloudinary } from "../utils/cloudinary.js";
+
 
 export const createRecipe = async (req, res, next)=>{
 
-        const newRecipe = new Recipe({ ...req.body, userId: req.user.id });
+        const newRecipe = new Recipe({ ...req.body,
+        image: req.file?.path || "",
+        cloudinary_id: req.file?.filename || "",
+        userId: req.user.id });
 
     try{
         const savedRecipe = await newRecipe.save();
-        res.status(200).json(savedRecipe)
+        res.status(201).json(savedRecipe)
         
     }catch(err){
         next(err)
@@ -17,7 +22,26 @@ export const createRecipe = async (req, res, next)=>{
 
 export const updateRecipe = async (req, res, next)=>{
     try{
-        const updatedRecipe = await Recipe.findByIdAndUpdate(req.params.id, {$set: req.body}, {new: true});
+        const recipe = await Recipe.findById(req.params.id);
+        if (!recipe) return res.status(404).json({ message: "Recipe not found!" });
+    
+    
+        const updatedFields = {
+          ...req.body,
+        };
+    
+     
+        if (req.file) {
+      
+          if (recipe.cloudinary_id) {
+            await cloudinary.uploader.destroy(recipe.cloudinary_id);
+          }
+    
+ 
+          updatedFields.image = req.file.path;
+          updatedFields.cloudinary_id = req.file.filename;
+        }
+        const updatedRecipe = await Recipe.findByIdAndUpdate(req.params.id, {$set: updatedFields}, {new: true});
         res.status(200).json(updatedRecipe);
 
     }catch(err){

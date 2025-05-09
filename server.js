@@ -9,6 +9,8 @@ import mongoose from "mongoose";
 import errorHandler from "./middlewares/errorHandler.js";
 import cookieParser from "cookie-parser";
 import helmet from "helmet";
+import uploadRoutes from "./routes/uploadRoutes.js";
+
 
 
 dotenv.config();
@@ -53,7 +55,7 @@ app.use("/api/products", productRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/recipes", recipeRoutes);
 app.use("/api/reviews", reviewRoutes)
-
+app.use("/api/upload", uploadRoutes);
 app.use((req, res, next) => {
   res.status(404).json({ message: "Route not found" });
 });

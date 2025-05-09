@@ -16,6 +16,13 @@ const RecipeSchema = new mongoose.Schema(
     instructions: {
       type: String, 
       required: true,
+    }, 
+    image: {
+      type: String,
+      default: "",
+    },
+    cloudinary_id: {
+      type: String,
     },
     cookTime: {
       type: Number, 
@@ -28,7 +35,7 @@ const RecipeSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "User", 
       required: true,
-    },
+    },  
   },
   { timestamps: true }
 );
