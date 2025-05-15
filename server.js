@@ -10,7 +10,7 @@ import errorHandler from "./middlewares/errorHandler.js";
 import cookieParser from "cookie-parser";
 import helmet from "helmet";
 import uploadRoutes from "./routes/uploadRoutes.js";
-
+import cors from "cors";
 
 
 dotenv.config();
@@ -18,7 +18,10 @@ dotenv.config();
 // Starting Server
 const app = express();
 
-
+app.use(cors({
+  origin: "http://localhost:5173", 
+  credentials: true, 
+}));
 // Middlewares
 app.use(express.json())
 app.use(cookieParser())
@@ -62,5 +65,6 @@ app.use((req, res, next) => {
 
 
 app.use(errorHandler);
+
 
 
