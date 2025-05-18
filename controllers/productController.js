@@ -44,7 +44,7 @@ export const deleteProduct = async (req,res, next)=>{
     try{
         const deletedProduct = await Product.findByIdAndDelete(req.params.id);
 
-        res.status(200).json({mesage:"Product deleted!"})
+        res.status(200).json({message:"Product deleted!"})
      
     }catch(err){
         next(err)

@@ -1,45 +1,89 @@
 import User from "../models/User.js";
-import bcrypt, { hashSync } from "bcrypt";
+import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { createError } from "../utils/error.js";
 
-export const register = async (req, res, next)=>{
-    try{
-        const salt = bcrypt.genSaltSync(20);
-        const hash = bcrypt.hashSync(req.body.password, salt);
+// ✅ Register
+export const register = async (req, res, next) => {
+  try {
+    const existingUser = await User.findOne({ username: req.body.username });
+    if (existingUser) {
+      return res.status(400).json({ message: "⚠️ Username already exists!" });
+    }
 
-        const newUser = new User ({
-            username : req.body.username,
-            email : req.body.email,
-            password : hash
-        });
-        await newUser.save();
-        res.status(200).send("User has been created!");
+    const existingEmail = await User.findOne({ email: req.body.email });
+    if (existingEmail) {
+      return res.status(400).json({ message: "⚠️ Email already exists!" });
+    }
 
-    }catch(err){
-        next(err)
-    };
-} ;
+    const salt = bcrypt.genSaltSync(10); // ✅ Faster than 20
+    const hash = bcrypt.hashSync(req.body.password, salt);
 
+    const newUser = new User({
+      username: req.body.username,
+      email: req.body.email,
+      password: hash,
+    });
 
-export const login = async (req, res, next)=>{
-    try{
-        const user = await User.findOne({username: req.body.username});
-        if (!user) return next(createError(404, "User not Found!"));
+    await newUser.save();
+    res.status(200).send("✅ User has been created!");
+  } catch (err) {
+    next(err);
+  }
+};
 
-        const isPassword = await bcrypt.compare(req.body.password, user.password);
-        if (!isPassword) return next(createError(400, "Wrong password or username!"));
+// ✅ Login
+export const login = async (req, res, next) => {
+  const start = Date.now(); // ⏱️ timing
 
-        const token = jwt.sign(
-            {id: user._id, isAdmin: user.isAdmin},
-            process.env.JWT_SECRET,
-            {expiresIn: "1d"}
-        );
+  try {
+    const user = await User.findOne({ email: req.body.email });
+    if (!user) return next(createError(404, "User not Found!"));
 
-        const {password , isAdmin , ...otherDetails} = user._doc;
-        res.cookie("access_token", token, {httpOnly: true}).status(200).json({...otherDetails, isAdmin: user.isAdmin});
+    const isPassword = await bcrypt.compare(req.body.password, user.password);
+    if (!isPassword)
+      return next(createError(400, "❌ Wrong email or password!"));
 
-    }catch(err){
-        next(err)};
-}; 
+    const token = jwt.sign(
+      {
+        id: user._id,
+        username: user.username,
+        email: user.email,
+        isAdmin: user.isAdmin,
+      },
+      process.env.JWT_SECRET,
+      { expiresIn: "1d" }
+    );
 
+    const { password, ...otherDetails } = user._doc;
+
+    res
+      .cookie("access_token", token, {
+        httpOnly: true,
+        maxAge: 24 * 60 * 60 * 1000,
+        sameSite: "Lax",
+      })
+      .status(200)
+      .json({ ...otherDetails });
+
+    console.log("⏱️ Login executed in:", Date.now() - start, "ms"); // debug time
+  } catch (err) {
+    next(err);
+  }
+};
+
+// ✅ Get Profile
+export const getProfile = (req, res) => {
+  try {
+    console.log("👤 req.user:", req.user);
+
+    if (!req.user) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    res.status(200).json(req.user);
+  } catch (err) {
+    console.error("❌ Error in getProfile:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+};

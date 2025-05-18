@@ -52,7 +52,7 @@ export const getReviewsByRecipeId = async (req, res, next) => {
 
 export const deleteReview = async (req, res, next)=>{
     try{
-      const review = Review.findById(req.params.id);
+      const review = await Review.findById(req.params.id);
       if(!review)return next(createError(404, "Review not found!"))
 
       if(review.userId !== req.user.id && req.user.isAdmin)
