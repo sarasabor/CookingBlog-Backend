@@ -84,6 +84,49 @@ export const getAllRecipes = async (req, res, next)=>{
         next(err);
       }
     };
+
+export const getRecipesByMood = async (req, res, next) => {
+  const { mood } = req.params;
+
+  try {
+    const recipes = await Recipe.find({ mood }).limit(10);
+    res.status(200).json(recipes);
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const getSmartSuggestions = async (req, res, next) => {
+  const { mood, ingredients, servings } = req.body;
+
+  try {
+    const recipes = await Recipe.find({
+      mood,
+      ingredients: { $in: ingredients }, // أي وصفة فيها شي عنصر من لي دار المستخدم
+    });
+
+    // نحسبو نسبة التطابق
+    const scored = recipes.map((recipe) => {
+      const common = recipe.ingredients.filter((ing) =>
+        ingredients.includes(ing)
+      );
+      const score = common.length / recipe.ingredients.length;
+      return { recipe, score };
+    });
+
+    // نرتب حسب أفضل تطابق
+    scored.sort((a, b) => b.score - a.score);
+
+    // نرجعو فقط recipes ديال أعلى 5
+    const topRecipes = scored.slice(0, 5).map((r) => r.recipe);
+
+    res.status(200).json(topRecipes);
+  } catch (err) {
+    next(err);
+  }
+};
+
+
     
 
 export const deleteRecipe = async (req, res, next)=>{

@@ -28,6 +28,11 @@ const RecipeSchema = new mongoose.Schema(
       type: String,
       enum: ["Easy", "Medium", "Hard"], 
     },
+    mood: {
+      type: String,
+      enum: ["hungry", "light", "sweet", "quick", "fancy"],
+      default: "hungry",
+    },
     userId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User", 
