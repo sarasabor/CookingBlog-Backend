@@ -1,28 +1,31 @@
 import mongoose from "mongoose";
 
-const ReviewSchema = new mongoose.Schema(
-    {
-        userId: {
-          type: String,
-          required: true,
-        },
-        recipeId: {
-          type: String,
-          required: true,
-        },
-        rating: {
-          type: Number,
-          required: true,
-          min: 1,
-          max: 5,
-        },
-        comment: {
-          type: String,
-          required: false,
-        },
-        averageRating: { type: Number, default: 0 }
-      },
-      { timestamps: true }
+const reviewSchema = new mongoose.Schema(
+  {
+    recipeId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Recipe",
+      required: true,
+    },
+    userId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
+    rating: {
+      type: Number,
+      required: true,
+      min: 1,
+      max: 5,
+    },
+    comment: {
+      type: String,
+      default: "",
+    },
+  },
+  { timestamps: true }
 );
 
-export default mongoose.model("Review", ReviewSchema);
+reviewSchema.index({ recipeId: 1, userId: 1 }, { unique: true }); // ✅ كل مستخدم يقيّم وصفة وحدة مرة وحدة فقط
+
+export default mongoose.model("Review", reviewSchema);

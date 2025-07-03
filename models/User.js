@@ -15,15 +15,13 @@ const userSchema = new mongoose.Schema({
         type: String,
         required: true,
       },
-      isAdmin:{
-        type:Boolean,
-        default: false
+      role: {
+        type: String,
+        enum: ["user", "admin"],
+        default: "user"
       },
-      favorites: {
-        type: [mongoose.Schema.Types.ObjectId],
-        ref: "Recipe",
-        default: [],
-      },      
+      favorites: [{ type: mongoose.Schema.Types.ObjectId, ref: "Recipe" }],
+     
     }, { timestamps: true});
 
 

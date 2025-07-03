@@ -22,7 +22,7 @@ export const verifyToken = (req, res, next) => {
 // ✅ فقط المستخدم المعني أو المسؤول يقدر يدخل
 export const verifyUser = (req, res, next) => {
   verifyToken(req, res, () => {
-    if (req.user.id === req.params.id || req.user.isAdmin) {
+    if (req.user.id === req.params.id || req.user.role === "admin"){
       next();
     } else {
       return next(createError(403, "You are not authorized!"));
@@ -33,13 +33,14 @@ export const verifyUser = (req, res, next) => {
 // ✅ فقط المسؤول (admin) يقدر يدخل
 export const verifyAdmin = (req, res, next) => {
   verifyToken(req, res, () => {
-    if (req.user.isAdmin) {
+    if (req.user.role === "admin"){
       next();
     } else {
       return next(createError(403, "You are not an admin!"));
     }
   });
 };
+
 
 // ✅ مخصص للوصفات: دعم token سواء فـ cookie أو فـ header
 export const verifyTokenRecipe = (req, res, next) => {
