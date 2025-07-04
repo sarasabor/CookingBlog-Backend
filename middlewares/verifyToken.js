@@ -1,11 +1,11 @@
 import jwt from "jsonwebtoken";
 import { createError } from "../utils/error.js";
 
-// ✅ Middleware عام: التحقق من JWT
+
 export const verifyToken = (req, res, next) => {
   let token = req.cookies.access_token;
 
-  // إذا مكاينش cookie وكاين authorization فـ headers (مثلاً من Postman)
+
   if (!token && req.headers.authorization) {
     token = req.headers.authorization.split(" ")[1];
   }
@@ -14,12 +14,12 @@ export const verifyToken = (req, res, next) => {
 
   jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
     if (err) return next(createError(403, "Token is not valid!"));
-    req.user = user; // 👈 نخزنو user اللي جا من JWT فـ req
+    req.user = user; 
     next();
   });
 };
 
-// ✅ فقط المستخدم المعني أو المسؤول يقدر يدخل
+
 export const verifyUser = (req, res, next) => {
   verifyToken(req, res, () => {
     if (req.user.id === req.params.id || req.user.role === "admin"){
@@ -30,7 +30,7 @@ export const verifyUser = (req, res, next) => {
   });
 };
 
-// ✅ فقط المسؤول (admin) يقدر يدخل
+
 export const verifyAdmin = (req, res, next) => {
   verifyToken(req, res, () => {
     if (req.user.role === "admin"){
@@ -42,7 +42,7 @@ export const verifyAdmin = (req, res, next) => {
 };
 
 
-// ✅ مخصص للوصفات: دعم token سواء فـ cookie أو فـ header
+
 export const verifyTokenRecipe = (req, res, next) => {
   let token = req.cookies.access_token;
 

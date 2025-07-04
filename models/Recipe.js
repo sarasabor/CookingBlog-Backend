@@ -9,7 +9,7 @@ const IngredientSchema = new mongoose.Schema(
     },
     quantity: { type: String, default: "" },
   },
-  { _id: false } // ✅ باش ingredients تكون embedded فقط وما يديرش id داخلي
+  { _id: false } 
 );
 
 const RecipeSchema = new mongoose.Schema(

@@ -4,7 +4,6 @@ import { addFavorite, deleteUser, getAllUsers, getFavorites, getUser, removeFavo
 
 const router = express.Router();
 
-
 router.post("/favorites/:recipeId", verifyToken, addFavorite);
 router.delete("/favorites/:recipeId", verifyToken, removeFavorite);
 router.get("/favorites",verifyToken, getFavorites);
@@ -13,6 +12,5 @@ router.put("/:id", verifyUser, updateUser);
 router.get("/:id", verifyAdmin, getUser);
 router.get("/", verifyAdmin, getAllUsers);
 router.delete("/:id", verifyUser, deleteUser);
-
 
 export default router;

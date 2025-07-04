@@ -26,12 +26,12 @@ export const register = async (req, res, next) => {
     const salt = bcrypt.genSaltSync(10);
     const hash = bcrypt.hashSync(password, salt);
 
-    // ✅ إنشاء المستخدم بدور user فقط
+ 
     const newUser = new User({
       username,
       email,
       password: hash,
-      role: "user" // 👈 ما كيبقاش يتبدل
+      role: "user" 
     });
 
     await newUser.save();
@@ -90,14 +90,14 @@ export const login = async (req, res, next) => {
   }
 };
 
-// ✅ Get Profile مع المفضلة
+// ✅ Get Profile 
 export const getProfile = async (req, res, next) => {
   try {
     if (!req.user) {
       return res.status(401).json({ message: "Unauthorized" });
     }
 
-    // نجيب المستخدم مكمّل بالمفضلة
+  
     const user = await User.findById(req.user.id).populate("favorites");
 
     if (!user) {

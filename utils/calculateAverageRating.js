@@ -2,7 +2,6 @@ import Recipe from "../models/Recipe.js";
 import Review from "../models/Review.js";
 
 //Calc Average Rating
-
 const calcuateAverageRating = async(recipeId)=>{
     const reviews = await Review.find({recipeId});
 

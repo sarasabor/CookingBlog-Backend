@@ -19,14 +19,11 @@ import { storage } from "../utils/cloudinary.js";
 const router = express.Router();
 const upload = multer({ storage });
 
-// ✅ مسارات خاصة يجب أن تكون أولاً
 router.get("/with-reviews/:id", getRecipeWithReviews);
 router.get("/mood/:mood", getRecipesByMood);
 router.post("/smart-suggestions", getSmartSuggestions);
 router.post("/suggestions/by-mood", getMoodSuggestions);
-router.post("/:id/rate", verifyToken, rateRecipe); // 
-
-// ✅ المسارات العامة بعد الخاصة
+router.post("/:id/rate", verifyToken, rateRecipe); 
 router.post("/", verifyTokenRecipe, verifyAdmin, upload.single("image"), createRecipe);
 router.get("/", getAllRecipes);
 router.get("/:id", getRecipe);

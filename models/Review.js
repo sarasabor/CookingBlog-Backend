@@ -26,6 +26,6 @@ const reviewSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-reviewSchema.index({ recipeId: 1, userId: 1 }, { unique: true }); // ✅ كل مستخدم يقيّم وصفة وحدة مرة وحدة فقط
+reviewSchema.index({ recipeId: 1, userId: 1 }, { unique: true }); 
 
 export default mongoose.model("Review", reviewSchema);
