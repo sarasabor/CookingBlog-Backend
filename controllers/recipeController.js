@@ -4,45 +4,88 @@ import { createError } from "../utils/error.js";
 import { cloudinary } from "../utils/cloudinary.js";
 import moodToTagsMap from "../utils/moodToTagsMap.js";
 
-export const createRecipe = async (req, res, next)=>{
-  const newRecipe = new Recipe({ 
-    ...req.body,
-    image: req.file?.path || "",
-    cloudinary_id: req.file?.filename || "",
-    userId: req.user.id 
-  });
-
+export const createRecipe = async (req, res, next) => {
   try {
-    const savedRecipe = await newRecipe.save();
-    res.status(201).json(savedRecipe);
-  } catch(err) {
+    const {
+      title,
+      description,
+      mood,
+      instructions,
+      cookTime,
+      difficulty
+    } = req.body;
+
+    // ✅ Parse multi-language ingredients from string
+    let ingredients = [];
+    if (req.body.ingredients) {
+      try {
+        ingredients = JSON.parse(req.body.ingredients);
+      } catch (e) {
+        return res.status(400).json({ message: "Invalid ingredients format" });
+      }
+    }
+
+
+    const image = req.file?.path || "";
+    const cloudinary_id = req.file?.filename || "";
+
+    const newRecipe = new Recipe({
+      title: JSON.parse(title), // Assuming it's multilingual: { en, fr, ar }
+      description: JSON.parse(description), // Same here
+      mood,
+      instructions: JSON.parse(instructions), // Same here
+      cookTime,
+      difficulty,
+      image,
+      cloudinary_id,
+      ingredients,
+      userId: req.user.id,
+    });
+
+    await newRecipe.save();
+    res.status(201).json(newRecipe);
+  } catch (err) {
     next(err);
   }
 };
 
-export const updateRecipe = async (req, res, next)=>{
+export const updateRecipe = async (req, res, next) => {
   try {
-    const recipe = await Recipe.findById(req.params.id);
-    if (!recipe) return res.status(404).json({ message: "Recipe not found!" });
+    let ingredients = [];
+
+    if (typeof req.body.ingredients === "string") {
+      ingredients = JSON.parse(req.body.ingredients);
+    } else {
+      ingredients = req.body.ingredients;
+    }
 
     const updatedFields = {
       ...req.body,
+      ingredients,
     };
 
     if (req.file) {
-      if (recipe.cloudinary_id) {
-        await cloudinary.uploader.destroy(recipe.cloudinary_id);
-      }
       updatedFields.image = req.file.path;
       updatedFields.cloudinary_id = req.file.filename;
     }
 
-    const updatedRecipe = await Recipe.findByIdAndUpdate(req.params.id, {$set: updatedFields}, {new: true});
+    const updatedRecipe = await Recipe.findByIdAndUpdate(
+      req.params.id,
+      { $set: updatedFields },
+      { new: true }
+    );
+
+    if (!updatedRecipe) {
+      return res.status(404).json({ message: "Recipe not found" });
+    }
+
     res.status(200).json(updatedRecipe);
-  } catch(err) {
+  } catch (err) {
+    console.error("❌ Error updating recipe:", err);
     next(err);
   }
 };
+
 
 export const getRecipe = async (req, res, next) => {
   try {
@@ -114,26 +157,37 @@ export const getRecipesByMood = async (req, res, next) => {
   }
 };
 
+
 export const getSmartSuggestions = async (req, res, next) => {
-  const { mood, ingredients, servings, maxCookTime, minRating = 0 } = req.body;
+  const { mood, ingredients = [], servings, maxCookTime, minRating = 0 } = req.body;
   const lang = req.headers["accept-language"] || "en";
 
   try {
-    if (!ingredients || ingredients.length < 2) {
-      return res.status(400).json({ message: "At least two ingredients are required." });
+    // ✅ شرط مرن: mood أو ingredient على الأقل
+    if ((!ingredients || ingredients.length < 2) && !mood) {
+      return res.status(400).json({ message: "Please provide at least a mood or two ingredients." });
     }
 
+    const query = {};
 
-    const query = {
-      [`ingredients.name.${lang}`]: { $in: ingredients }, 
-    };
+    // ✅ فلترة حسب المكونات
+    if (ingredients.length >= 2) {
+      query[`ingredients.name.${lang}`] = { $in: ingredients };
+    }
 
-    if (mood) query.mood = mood;
-    if (maxCookTime) query.cookTime = { $lte: maxCookTime };
+    // ✅ فلترة حسب المزاج
+    if (mood) {
+      query.mood = mood;
+    }
+
+    // ✅ فلترة حسب مدة الطهي
+    if (maxCookTime) {
+      query.cookTime = { $lte: maxCookTime };
+    }
 
     const recipes = await Recipe.find(query);
 
-   
+    // ✅ جمع التقييمات
     const ratings = await Review.aggregate([
       {
         $match: {
@@ -153,18 +207,24 @@ export const getSmartSuggestions = async (req, res, next) => {
       return acc;
     }, {});
 
-
+    // ✅ حساب الـ score حسب عدد المكونات المشتركة
     const scored = recipes
       .map((recipe) => {
-        const common = recipe.ingredients.filter((ing) =>
-          ingredients.includes(ing.name[lang])
-        );
-        const score = common.length / recipe.ingredients.length;
+        const commonIngredients = ingredients.length >= 2
+          ? recipe.ingredients.filter((ing) => ingredients.includes(ing.name[lang]))
+          : [];
+
+        const score = ingredients.length >= 2
+          ? commonIngredients.length / recipe.ingredients.length
+          : 1; // mood only → score = 1
+
         const avgRating = ratingMap[recipe._id.toString()] || 0;
+
         return { recipe, score, avgRating };
       })
       .filter((r) => r.avgRating >= minRating);
 
+    // ✅ ترتيب حسب score والتقييم
     scored.sort((a, b) => {
       if (b.score === a.score) {
         return b.avgRating - a.avgRating;
@@ -172,14 +232,16 @@ export const getSmartSuggestions = async (req, res, next) => {
       return b.score - a.score;
     });
 
+    // ✅ إرسال النتائج (10 فقط)
     const topRecipes = scored.slice(0, 10).map((r) => r.recipe);
 
     res.status(200).json(topRecipes);
   } catch (err) {
-    console.error("Error in getSmartSuggestions:", err);
+    console.error("❌ Error in getSmartSuggestions:", err);
     next(err);
   }
 };
+
 
 export const getRecipeWithReviews = async (req, res, next) => {
   try {

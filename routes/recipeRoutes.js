@@ -10,26 +10,30 @@ import {
   getSmartSuggestions,
   getMoodSuggestions,
 } from "../controllers/recipeController.js";
-import { createReview } from "../controllers/reviewController.js";
 
+import { createReview } from "../controllers/reviewController.js";
 import { verifyAdmin, verifyToken, verifyTokenRecipe } from "../middlewares/verifyToken.js";
+
 import multer from "multer";
 import { storage } from "../utils/cloudinary.js";
 
 const router = express.Router();
 const upload = multer({ storage });
 
-router.get("/with-reviews/:id", getRecipeWithReviews);
-router.get("/mood/:mood", getRecipesByMood);
+// ✅ 1. المسارات الخاصة أولاً (الأكثر تحديدًا)
 router.post("/smart-suggestions", getSmartSuggestions);
 router.post("/suggestions/by-mood", getMoodSuggestions);
-router.post("/:id/rate", verifyToken, rateRecipe); 
-router.post("/", verifyTokenRecipe, verifyAdmin, upload.single("image"), createRecipe);
-router.get("/", getAllRecipes);
-router.get("/:id", getRecipe);
-router.put("/:id", verifyTokenRecipe, verifyAdmin, upload.single("image"), updateRecipe);
-// router.delete("/:id", verifyTokenRecipe, deleteRecipe);
-router.post("/reviews/:recipeId", verifyToken, createReview);
+router.get("/with-reviews/:id", getRecipeWithReviews);
+router.get("/mood/:mood", getRecipesByMood);
+router.post("/reviews/:recipeId", verifyToken, createReview); // ✅ moved up
+router.post("/:id/rate", verifyToken, rateRecipe);
 
+// ✅ 2. مسارات CRUD
+router.post("/", verifyTokenRecipe, verifyAdmin, upload.single("image"), createRecipe);
+router.put("/:id", verifyTokenRecipe, verifyAdmin, upload.single("image"), updateRecipe);
+router.get("/", getAllRecipes);
+
+// ✅ 3. أخيرًا: route العامة (id)
+router.get("/:id", getRecipe);
 
 export default router;
