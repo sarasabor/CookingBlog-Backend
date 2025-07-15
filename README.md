@@ -1,3 +1,4 @@
+
 # CookingBlog 🍽️ — Personalized Recipe Suggestions
 
 CookingBlog is a full-featured, multilingual recipe web application that provides personalized cooking suggestions based on your **mood**, **available ingredients**, and **number of servings**. With a user-friendly interface, smart filtering, and intelligent logic grounded in real psychological and nutritional research, CookingBlog aims to improve your everyday cooking experience in both fun and functional ways.
