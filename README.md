@@ -36,7 +36,7 @@ These studies show clear correlations between mood and food cravings (e.g., stre
 
 * **Node.js** + **Express.js** for server setup and RESTful APIs
 * **MongoDB** + **Mongoose** for data storage and schema modeling
-* **JWT** + **bcrypt** for authentication and authorization
+* **JWT** + **bcryptjs** for authentication and authorization
 * **Multer** + **Cloudinary** for image upload & storage
 * **Custom middleware** for admin/user role verification
 
@@ -80,7 +80,7 @@ cookingBlog/
 
 ## 🔐 Authentication & Roles
 
-* **JWT-based login system** with hashed passwords (bcrypt)
+* **JWT-based login system** with hashed passwords (bcryptjs)
 * Role-based access (admin / user)
 * Admins can access protected endpoints for recipe creation and modification
 
