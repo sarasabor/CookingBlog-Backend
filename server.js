@@ -18,7 +18,24 @@ dotenv.config();
 const app = express();
 
 app.use(cors({
-  origin: "http://localhost:5173", 
+  origin: function (origin, callback) {
+    // Allow requests with no origin (mobile apps, Postman, etc.)
+    if (!origin) return callback(null, true);
+    
+    // Allow localhost and Vercel domains
+    const allowedOrigins = [
+      "http://localhost:5173",
+      "https://localhost:5173"
+    ];
+    
+    if (allowedOrigins.includes(origin) || 
+        origin.includes('vercel.app') || 
+        origin === process.env.FRONTEND_URL) {
+      return callback(null, true);
+    }
+    
+    return callback(new Error('Not allowed by CORS'), false);
+  },
   credentials: true, 
 }));
 
@@ -27,8 +44,8 @@ app.use(express.json());
 app.use(cookieParser());
 app.use(helmet());
 
-// Backend Port
-const port = process.env.PORT || 5000;
+// Backend Port (Koyeb uses 8000 by default)
+const port = process.env.PORT || 8000;
 
 // Connect to database
 const mongoUrl = process.env.MONGO;
