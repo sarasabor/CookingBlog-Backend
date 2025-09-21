@@ -74,15 +74,19 @@ export const login = async (req, res, next) => {
 
     const { password: _, ...userData } = user._doc;
       userData.role = user.role;
-    // 🍪 Send cookie
+    // 🍪 Send cookie + token in response for cross-domain
     res
       .cookie("access_token", token, {
         httpOnly: true,
         maxAge: 24 * 60 * 60 * 1000,
-        sameSite: "Lax",
+        sameSite: "None",
+        secure: true, // Required for cross-domain
       })
       .status(200)
-      .json(userData);
+      .json({
+        ...userData,
+        token: token // Also send token in response for frontend storage
+      });
 
     console.log("✅ Login completed in", Date.now() - start, "ms");
   } catch (err) {
