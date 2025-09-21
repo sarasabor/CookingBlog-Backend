@@ -93,11 +93,14 @@ export const login = async (req, res, next) => {
 // ✅ Get Profile 
 export const getProfile = async (req, res, next) => {
   try {
+    console.log("🔍 JWT_SECRET exists:", !!process.env.JWT_SECRET);
+    console.log("🔍 req.user:", req.user);
+    
     if (!req.user) {
+      console.log("❌ No user in request");
       return res.status(401).json({ message: "Unauthorized" });
     }
 
-  
     const user = await User.findById(req.user.id).populate("favorites");
 
     if (!user) {
