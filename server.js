@@ -30,6 +30,7 @@ app.use(cors({
     
     if (allowedOrigins.includes(origin) || 
         origin.includes('vercel.app') || 
+        origin.includes('moodbitekitchen.com') ||
         origin === process.env.FRONTEND_URL) {
       return callback(null, true);
     }
