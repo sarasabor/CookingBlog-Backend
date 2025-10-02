@@ -17,8 +17,13 @@ dotenv.config();
 // Starting Server
 const app = express();
 
+// CORS configuration for Railway
 app.use(cors({
-  origin: "http://localhost:5173", 
+  origin: [
+    "http://localhost:5173",
+    "https://www.moodbitekitchen.com",
+    "https://moodbitekitchen.com"
+  ],
   credentials: true, 
 }));
 
@@ -36,20 +41,60 @@ const mongoUrl = process.env.MONGO
 const connectToDatabase = async () => {
     try {
      const connectedDb = await mongoose.connect(mongoUrl); 
-     if (connectedDb) {app.listen(port, ()=>{
-    console.log(`Server is running on port: ${port}`);
-});};
-      console.log('Connected to MongoDB');
+     console.log('Connected to MongoDB');
+     return connectedDb;
     } catch (err) {
       console.log('Error connecting to MongoDB:', err);
+      throw err;
     }
   };
 
-connectToDatabase();
+// Start server after database connection
+const startServer = async () => {
+  try {
+    await connectToDatabase();
+    app.listen(port, () => {
+      console.log(`Server is running on port: ${port}`);
+      console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
+      console.log(`Health check: http://localhost:${port}/api/health`);
+    });
+  } catch (error) {
+    console.error('Failed to start server:', error);
+    process.exit(1);
+  }
+};
 
-// Server route
+startServer();
+
+// Server routes
 app.get("/", (req , res)=>{
-    res.send("Welcome from Backend")
+    res.send("Welcome from CookingBlog Backend")
+});
+
+// Health check for Railway
+app.get("/api/health", (req, res) => {
+  res.status(200).json({
+    status: "OK",
+    message: "Backend is running",
+    timestamp: new Date().toISOString()
+  });
+});
+
+// API info endpoint
+app.get("/api", (req, res) => {
+  res.json({
+    message: "CookingBlog API",
+    version: "1.0.0",
+    endpoints: [
+      "/api/auth",
+      "/api/products", 
+      "/api/users",
+      "/api/recipes",
+      "/api/reviews",
+      "/api/upload",
+      "/api/health"
+    ]
+  });
 });
 
 app.use("/api/auth", authRoutes);
