@@ -18,14 +18,26 @@ dotenv.config();
 const app = express();
 
 // CORS configuration for Railway
+const allowedOrigins = [
+  "http://localhost:5173",
+  "https://www.moodbitekitchen.com",
+  "https://moodbitekitchen.com",
+  "https://cooking-blog-frontend-cftb-e9nfiipms-sarasabors-projects.vercel.app"
+];
+
+// Add FRONTEND_URL(s) from environment variables if provided
+if (process.env.FRONTEND_URL) {
+  const frontendUrls = process.env.FRONTEND_URL.split(',').map(url => url.trim());
+  allowedOrigins.push(...frontendUrls);
+}
+
 app.use(cors({
-  origin: [
-    "http://localhost:5173",
-    "https://www.moodbitekitchen.com",
-    "https://moodbitekitchen.com"
-  ],
-  credentials: true, 
+  origin: allowedOrigins,
+  credentials: true,
 }));
+
+// Log CORS configuration for debugging
+console.log('CORS allowed origins:', allowedOrigins);
 
 // Middlewares
 app.use(express.json())
@@ -39,15 +51,15 @@ const port = process.env.PORT || 5000;
 const mongoUrl = process.env.MONGO
 
 const connectToDatabase = async () => {
-    try {
-     const connectedDb = await mongoose.connect(mongoUrl); 
-     console.log('Connected to MongoDB');
-     return connectedDb;
-    } catch (err) {
-      console.log('Error connecting to MongoDB:', err);
-      throw err;
-    }
-  };
+  try {
+    const connectedDb = await mongoose.connect(mongoUrl);
+    console.log('Connected to MongoDB');
+    return connectedDb;
+  } catch (err) {
+    console.log('Error connecting to MongoDB:', err);
+    throw err;
+  }
+};
 
 // Start server after database connection
 const startServer = async () => {
@@ -67,8 +79,8 @@ const startServer = async () => {
 startServer();
 
 // Server routes
-app.get("/", (req , res)=>{
-    res.send("Welcome from CookingBlog Backend")
+app.get("/", (req, res) => {
+  res.send("Welcome from CookingBlog Backend")
 });
 
 // Health check for Railway
@@ -87,7 +99,7 @@ app.get("/api", (req, res) => {
     version: "1.0.0",
     endpoints: [
       "/api/auth",
-      "/api/products", 
+      "/api/products",
       "/api/users",
       "/api/recipes",
       "/api/reviews",
