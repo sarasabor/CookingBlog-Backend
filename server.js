@@ -31,35 +31,13 @@ if (process.env.FRONTEND_URL) {
   allowedOrigins.push(...frontendUrls);
 }
 
-// Enhanced CORS configuration
 app.use(cors({
-  origin: function (origin, callback) {
-    // Allow requests with no origin (like mobile apps or curl requests)
-    if (!origin) return callback(null, true);
-    
-    if (allowedOrigins.indexOf(origin) !== -1) {
-      callback(null, true);
-    } else {
-      console.log('CORS blocked origin:', origin);
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
+  origin: allowedOrigins,
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'Cookie'],
-  exposedHeaders: ['Set-Cookie']
 }));
 
 // Log CORS configuration for debugging
 console.log('CORS allowed origins:', allowedOrigins);
-
-// Debug middleware for CORS
-app.use((req, res, next) => {
-  console.log('Request origin:', req.headers.origin);
-  console.log('Request method:', req.method);
-  console.log('Request headers:', req.headers);
-  next();
-});
 
 // Middlewares
 app.use(express.json())
