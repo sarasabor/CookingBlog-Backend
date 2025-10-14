@@ -22,7 +22,8 @@ const allowedOrigins = [
   "http://localhost:5173",
   "https://www.moodbitekitchen.com",
   "https://moodbitekitchen.com",
-  "https://cooking-blog-frontend-cftb-e9nfiipms-sarasabors-projects.vercel.app"
+  "https://cooking-blog-frontend-cftb-e9nfiipms-sarasabors-projects.vercel.app",
+  "https://cooking-blog-frontend-cftb-9l9y2q9be-sarasabors-projects.vercel.app"
 ];
 
 // Add FRONTEND_URL(s) from environment variables if provided
@@ -32,7 +33,27 @@ if (process.env.FRONTEND_URL) {
 }
 
 app.use(cors({
-  origin: allowedOrigins,
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    
+    // Check if origin is in allowed origins
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+    
+    // Allow all Vercel deployments for this project
+    if (origin && origin.includes('cooking-blog-frontend-cftb') && origin.includes('vercel.app')) {
+      return callback(null, true);
+    }
+    
+    // Allow all moodbitekitchen.com subdomains
+    if (origin && origin.includes('moodbitekitchen.com')) {
+      return callback(null, true);
+    }
+    
+    callback(new Error('Not allowed by CORS'));
+  },
   credentials: true,
 }));
 
