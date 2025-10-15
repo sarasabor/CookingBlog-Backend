@@ -36,8 +36,23 @@ export const register = async (req, res, next) => {
 
     await newUser.save();
 
+    // 🔑 Generate JWT for new user
+    const token = jwt.sign(
+      {
+        id: newUser._id,
+        username: newUser.username,
+        email: newUser.email,
+        role: newUser.role,
+      },
+      process.env.JWT_SECRET,
+      { expiresIn: "1d" }
+    );
+
+    const { password: _, ...userData } = newUser._doc;
+    userData.role = newUser.role;
+
     console.log("✅ Register completed in", Date.now() - start, "ms");
-    res.status(200).send("✅ User has been created!");
+    res.status(200).json({ token, user: userData });
   } catch (err) {
     next(err);
   }
@@ -76,7 +91,12 @@ export const login = async (req, res, next) => {
     );
 
     const { password: _, ...userData } = user._doc;
-      userData.role = user.role;
+    userData.role = user.role;
+    
+    console.log('Token generated:', token.substring(0, 20) + '...');
+    console.log('Token length:', token.length);
+    console.log('User data:', { id: user._id, username: user.username, email: user.email, role: user.role });
+    
     // 🍪 Send cookie
     res
       .cookie("access_token", token, {
@@ -85,7 +105,7 @@ export const login = async (req, res, next) => {
         sameSite: "Lax",
       })
       .status(200)
-      .json(userData);
+      .json({ token, user: userData });
 
     console.log("✅ Login completed in", Date.now() - start, "ms");
   } catch (err) {

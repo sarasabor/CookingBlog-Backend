@@ -5,6 +5,8 @@ import { createError } from "../utils/error.js";
 export const verifyToken = (req, res, next) => {
   let token = req.cookies.access_token;
 
+  console.log('Authorization header:', req.headers.authorization);
+  
   if (!token && req.headers.authorization) {
     token = req.headers.authorization.split(" ")[1];
   }
