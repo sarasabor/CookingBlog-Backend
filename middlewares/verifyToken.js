@@ -5,15 +5,21 @@ import { createError } from "../utils/error.js";
 export const verifyToken = (req, res, next) => {
   let token = req.cookies.access_token;
 
-
   if (!token && req.headers.authorization) {
     token = req.headers.authorization.split(" ")[1];
   }
 
+  console.log('Token received:', !!token);
+  console.log('JWT_SECRET exists:', !!process.env.JWT_SECRET);
+  console.log('JWT_SECRET length:', process.env.JWT_SECRET?.length);
+
   if (!token) return next(createError(403, "Access denied!"));
 
   jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
-    if (err) return next(createError(403, "Token is not valid!"));
+    if (err) {
+      console.log('JWT verification error:', err.message);
+      return next(createError(403, "Token is not valid!"));
+    }
     req.user = user; 
     next();
   });

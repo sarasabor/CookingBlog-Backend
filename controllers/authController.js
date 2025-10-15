@@ -61,6 +61,9 @@ export const login = async (req, res, next) => {
       return next(createError(400, "❌ Wrong email or password!"));
 
     // 🔑 Generate JWT
+    console.log('JWT_SECRET exists:', !!process.env.JWT_SECRET);
+    console.log('JWT_SECRET length:', process.env.JWT_SECRET?.length);
+    
     const token = jwt.sign(
       {
         id: user._id,
