@@ -10,6 +10,8 @@ export const verifyToken = (req, res, next) => {
   }
 
   console.log('Token received:', !!token);
+  console.log('Token preview:', token ? token.substring(0, 20) + '...' : 'No token');
+  console.log('Token length:', token ? token.length : 0);
   console.log('JWT_SECRET exists:', !!process.env.JWT_SECRET);
   console.log('JWT_SECRET length:', process.env.JWT_SECRET?.length);
 
