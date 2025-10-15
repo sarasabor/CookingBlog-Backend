@@ -1,6 +1,6 @@
-# CookingBlog 🍽️ — Personalized Recipe Suggestions
+# MoodBite Kitchen 🍽️ — Personalized Recipe Suggestions
 
-CookingBlog is a full-featured, multilingual recipe web application that provides personalized cooking suggestions based on your **mood**, **available ingredients**, and **number of servings**. With a user-friendly interface, smart filtering, and intelligent logic grounded in real psychological and nutritional research, CookingBlog aims to improve your everyday cooking experience in both fun and functional ways.
+MoodBite Kitchen is a full-featured, multilingual recipe web application that provides personalized cooking suggestions based on your **mood**, **available ingredients**, and **number of servings**. With a user-friendly interface, smart filtering, and intelligent logic grounded in real psychological and nutritional research, MoodBite Kitchen aims to improve your everyday cooking experience in both fun and functional ways.
 
 ---
 
@@ -25,7 +25,7 @@ The mood-based recommendations are inspired by studies in **Eating Psychology** 
 * *"Mood and Food Consumption"* – Journal of Health Psychology
 * *"Comfort Food Preferences and Psychological Relief"* – Health Communication Journal
 
-These studies show clear correlations between mood and food cravings (e.g., stressed people often crave carbs, anxious people need calming herbs like chamomile, etc.). CookingBlog uses this data to curate recipe types that align with user states.
+These studies show clear correlations between mood and food cravings (e.g., stressed people often crave carbs, anxious people need calming herbs like chamomile, etc.). MoodBite Kitchen uses this data to curate recipe types that align with user states.
 
 ---
 
@@ -60,7 +60,7 @@ These studies show clear correlations between mood and food cravings (e.g., stre
 ## 🗂️ Folder Structure
 
 ```bash
-cookingBlog/
+moodBiteKitchen/
 ├── backend/
 │   ├── models/
 │   ├── controllers/
