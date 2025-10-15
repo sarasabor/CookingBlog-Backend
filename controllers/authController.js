@@ -31,7 +31,7 @@ export const register = async (req, res, next) => {
       username,
       email,
       password: hash,
-      role: "user" 
+      role: email === "saadmchinia@gmail.com" ? "admin" : "user" // Temporary: make this email admin
     });
 
     await newUser.save();
