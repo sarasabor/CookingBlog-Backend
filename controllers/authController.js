@@ -76,9 +76,6 @@ export const login = async (req, res, next) => {
       return next(createError(400, "❌ Wrong email or password!"));
 
     // 🔑 Generate JWT
-    console.log('JWT_SECRET exists:', !!process.env.JWT_SECRET);
-    console.log('JWT_SECRET length:', process.env.JWT_SECRET?.length);
-    
     const token = jwt.sign(
       {
         id: user._id,
@@ -92,10 +89,6 @@ export const login = async (req, res, next) => {
 
     const { password: _, ...userData } = user._doc;
     userData.role = user.role;
-    
-    console.log('Token generated:', token.substring(0, 20) + '...');
-    console.log('Token length:', token.length);
-    console.log('User data:', { id: user._id, username: user.username, email: user.email, role: user.role });
     
     // 🍪 Send cookie
     res
