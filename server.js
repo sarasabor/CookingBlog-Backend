@@ -68,6 +68,61 @@ app.use(helmet())
 // Backend Port
 const port = process.env.PORT || 5000;
 
+// ============================================
+// ROUTES CONFIGURATION (BEFORE SERVER START)
+// ============================================
+
+// Health check for Railway (MUST be first for quick response)
+app.get("/api/health", (req, res) => {
+  res.status(200).json({
+    status: "OK",
+    message: "Backend is running",
+    timestamp: new Date().toISOString()
+  });
+});
+
+// Server root route
+app.get("/", (req, res) => {
+  res.send("Welcome from CookingBlog Backend")
+});
+
+// API info endpoint
+app.get("/api", (req, res) => {
+  res.json({
+    message: "CookingBlog API",
+    version: "1.0.0",
+    endpoints: [
+      "/api/auth",
+      "/api/products",
+      "/api/users",
+      "/api/recipes",
+      "/api/reviews",
+      "/api/upload",
+      "/api/health"
+    ]
+  });
+});
+
+// API Routes
+app.use("/api/auth", authRoutes);
+app.use("/api/products", productRoutes);
+app.use("/api/users", userRoutes);
+app.use("/api/recipes", recipeRoutes);
+app.use("/api/reviews", reviewRoutes)
+app.use("/api/upload", uploadRoutes);
+
+// 404 handler
+app.use((req, res, next) => {
+  res.status(404).json({ message: "Route not found" });
+});
+
+// Error handler
+app.use(errorHandler);
+
+// ============================================
+// DATABASE & SERVER STARTUP
+// ============================================
+
 // Connect to database
 const mongoUrl = process.env.MONGO
 
@@ -98,50 +153,6 @@ const startServer = async () => {
 };
 
 startServer();
-
-// Server routes
-app.get("/", (req, res) => {
-  res.send("Welcome from CookingBlog Backend")
-});
-
-// Health check for Railway
-app.get("/api/health", (req, res) => {
-  res.status(200).json({
-    status: "OK",
-    message: "Backend is running",
-    timestamp: new Date().toISOString()
-  });
-});
-
-// API info endpoint
-app.get("/api", (req, res) => {
-  res.json({
-    message: "CookingBlog API",
-    version: "1.0.0",
-    endpoints: [
-      "/api/auth",
-      "/api/products",
-      "/api/users",
-      "/api/recipes",
-      "/api/reviews",
-      "/api/upload",
-      "/api/health"
-    ]
-  });
-});
-
-app.use("/api/auth", authRoutes);
-app.use("/api/products", productRoutes);
-app.use("/api/users", userRoutes);
-app.use("/api/recipes", recipeRoutes);
-app.use("/api/reviews", reviewRoutes)
-app.use("/api/upload", uploadRoutes);
-app.use((req, res, next) => {
-  res.status(404).json({ message: "Route not found" });
-});
-
-
-app.use(errorHandler);
 
 
 
