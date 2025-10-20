@@ -9,6 +9,7 @@ import {
   getRecipesByMood,
   getSmartSuggestions,
   getMoodSuggestions,
+  getAISuggestions,
 } from "../controllers/recipeController.js";
 
 import { createReview } from "../controllers/reviewController.js";
@@ -21,6 +22,7 @@ const router = express.Router();
 const upload = multer({ storage });
 
 // ✅ 1. المسارات الخاصة أولاً (الأكثر تحديدًا)
+router.post("/ai-suggestions", getAISuggestions);
 router.post("/smart-suggestions", getSmartSuggestions);
 router.post("/suggestions/by-mood", getMoodSuggestions);
 router.get("/with-reviews/:id", getRecipeWithReviews);
