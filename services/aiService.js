@@ -168,7 +168,7 @@ Formatez votre réponse comme un objet JSON avec cette structure exacte:
 
     // Select the appropriate model based on provider
     const model = groq 
-      ? (process.env.GROQ_MODEL || "llama-3.1-70b-versatile")  // Groq models
+      ? (process.env.GROQ_MODEL || "llama-3.3-70b-versatile")  // Groq models (updated to latest)
       : (process.env.OPENAI_MODEL || "gpt-4o-mini");           // OpenAI models
 
     // Build completion options

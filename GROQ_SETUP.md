@@ -6,7 +6,7 @@
 - ✅ **PLUS RAPIDE qu'OpenAI** (vraiment !)
 - ✅ **Génère de vraies nouvelles recettes**
 - ✅ **30 requêtes/minute** (largement suffisant)
-- ✅ **Excellente qualité** avec Llama 3.1 70B
+- ✅ **Excellente qualité** avec Llama 3.3 70B
 
 ## ⚡ Configuration Express (3 minutes)
 
@@ -49,7 +49,7 @@
 
 ```bash
 railway variables set GROQ_API_KEY=gsk_votre-clé-ici
-railway variables set GROQ_MODEL=llama-3.1-70b-versatile
+railway variables set GROQ_MODEL=llama-3.3-70b-versatile
 ```
 
 ### Étape 4 : Tester !
