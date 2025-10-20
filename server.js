@@ -129,25 +129,30 @@ const mongoUrl = process.env.MONGO
 const connectToDatabase = async () => {
   try {
     const connectedDb = await mongoose.connect(mongoUrl);
-    console.log('Connected to MongoDB');
+    console.log('✅ Connected to MongoDB');
     return connectedDb;
   } catch (err) {
-    console.log('Error connecting to MongoDB:', err);
-    throw err;
+    console.error('❌ Error connecting to MongoDB:', err);
+    console.error('Server will continue running but API calls requiring DB will fail');
+    return null;
   }
 };
 
-// Start server after database connection
+// Start server FIRST (for Railway healthcheck), then connect to database
 const startServer = async () => {
   try {
-    await connectToDatabase();
+    // Start Express server first (so healthcheck can succeed)
     app.listen(port, () => {
-      console.log(`Server is running on port: ${port}`);
+      console.log(`🚀 Server is running on port: ${port}`);
       console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
       console.log(`Health check: http://localhost:${port}/api/health`);
     });
+    
+    // Connect to MongoDB after server is running
+    console.log('Connecting to MongoDB...');
+    await connectToDatabase();
   } catch (error) {
-    console.error('Failed to start server:', error);
+    console.error('❌ Failed to start server:', error);
     process.exit(1);
   }
 };
