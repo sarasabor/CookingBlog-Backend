@@ -171,7 +171,8 @@ Formatez votre réponse comme un objet JSON avec cette structure exacte:
       ? (process.env.GROQ_MODEL || "llama-3.1-70b-versatile")  // Groq models
       : (process.env.OPENAI_MODEL || "gpt-4o-mini");           // OpenAI models
 
-    const completion = await aiClient.chat.completions.create({
+    // Build completion options
+    const completionOptions = {
       model: model,
       messages: [
         {
@@ -184,9 +185,15 @@ Formatez votre réponse comme un objet JSON avec cette structure exacte:
         }
       ],
       temperature: 0.8,
-      max_tokens: 2500,
-      response_format: { type: "json_object" }
-    });
+      max_tokens: 2500
+    };
+
+    // Only add response_format for OpenAI (Groq doesn't support it)
+    if (!groq && openai) {
+      completionOptions.response_format = { type: "json_object" };
+    }
+
+    const completion = await aiClient.chat.completions.create(completionOptions);
 
     const responseContent = completion.choices[0].message.content;
     console.log(`✅ ${aiProvider} Response received`);

@@ -37,10 +37,10 @@
 3. **Cliquez sur "Variables"**
 4. **Ajoutez ces 2 variables** :
 
-   | Variable       | Valeur                              |
-   | -------------- | ----------------------------------- |
-   | `GROQ_API_KEY` | `gsk_votre-clé-complète-ici`        |
-   | `GROQ_MODEL`   | `llama-3.1-70b-versatile`           |
+   | Variable       | Valeur                       |
+   | -------------- | ---------------------------- |
+   | `GROQ_API_KEY` | `gsk_votre-clé-complète-ici` |
+   | `GROQ_MODEL`   | `llama-3.1-70b-versatile`    |
 
 5. **Cliquez sur "Add"** pour chaque variable
 6. **Railway redéploiera automatiquement** (1-2 minutes)
@@ -81,23 +81,23 @@ railway variables set GROQ_MODEL=llama-3.1-70b-versatile
 
 ## 📊 Modèles Groq Disponibles
 
-| Modèle                     | Vitesse    | Qualité    | Recommandé pour      |
-| -------------------------- | ---------- | ---------- | -------------------- |
-| `llama-3.1-70b-versatile`  | ⚡⚡⚡      | ⭐⭐⭐⭐⭐ | **Recettes** ✅      |
-| `llama-3.1-8b-instant`     | ⚡⚡⚡⚡⚡  | ⭐⭐⭐⭐   | Très rapide          |
-| `mixtral-8x7b-32768`       | ⚡⚡⚡      | ⭐⭐⭐⭐   | Contexte long        |
-| `gemma2-9b-it`             | ⚡⚡⚡⚡    | ⭐⭐⭐     | Léger et rapide      |
+| Modèle                    | Vitesse    | Qualité    | Recommandé pour |
+| ------------------------- | ---------- | ---------- | --------------- |
+| `llama-3.1-70b-versatile` | ⚡⚡⚡     | ⭐⭐⭐⭐⭐ | **Recettes** ✅ |
+| `llama-3.1-8b-instant`    | ⚡⚡⚡⚡⚡ | ⭐⭐⭐⭐   | Très rapide     |
+| `mixtral-8x7b-32768`      | ⚡⚡⚡     | ⭐⭐⭐⭐   | Contexte long   |
+| `gemma2-9b-it`            | ⚡⚡⚡⚡   | ⭐⭐⭐     | Léger et rapide |
 
 **Recommandation** : Utilisez `llama-3.1-70b-versatile` (par défaut) - excellent équilibre !
 
 ## 💡 Limites Groq (Gratuites)
 
-| Limite             | Valeur        |
-| ------------------ | ------------- |
-| Requêtes/minute    | 30            |
-| Requêtes/jour      | 14,400        |
-| Tokens/minute      | 6,000         |
-| **Coût**           | **$0.00 !**   |
+| Limite          | Valeur      |
+| --------------- | ----------- |
+| Requêtes/minute | 30          |
+| Requêtes/jour   | 14,400      |
+| Tokens/minute   | 6,000       |
+| **Coût**        | **$0.00 !** |
 
 Pour votre application, c'est largement suffisant ! 🎉
 
@@ -128,15 +128,15 @@ Pour votre application, c'est largement suffisant ! 🎉
 
 ## 🆚 Groq vs OpenAI
 
-| Critère                | Groq ⚡                    | OpenAI 💰                  |
-| ---------------------- | -------------------------- | -------------------------- |
-| **Coût**               | **GRATUIT** 🎉             | ~$0.50/mois                |
-| **Vitesse**            | **Plus rapide** ⚡⚡⚡     | Rapide ⚡⚡                |
-| **Qualité**            | Excellente ⭐⭐⭐⭐        | Excellente ⭐⭐⭐⭐⭐      |
-| **Limite**             | 30 requêtes/min            | Très haute                 |
-| **Configuration**      | Aucune carte requise ✅    | Carte bancaire requise ❌  |
-| **Nouvelles recettes** | ✅ Oui                     | ✅ Oui                     |
-| **Setup**              | 3 minutes                  | 5 minutes                  |
+| Critère                | Groq ⚡                 | OpenAI 💰                 |
+| ---------------------- | ----------------------- | ------------------------- |
+| **Coût**               | **GRATUIT** 🎉          | ~$0.50/mois               |
+| **Vitesse**            | **Plus rapide** ⚡⚡⚡  | Rapide ⚡⚡               |
+| **Qualité**            | Excellente ⭐⭐⭐⭐     | Excellente ⭐⭐⭐⭐⭐     |
+| **Limite**             | 30 requêtes/min         | Très haute                |
+| **Configuration**      | Aucune carte requise ✅ | Carte bancaire requise ❌ |
+| **Nouvelles recettes** | ✅ Oui                  | ✅ Oui                    |
+| **Setup**              | 3 minutes               | 5 minutes                 |
 
 **Verdict** : **Groq est parfait pour votre cas d'usage !** 🏆
 
@@ -170,4 +170,3 @@ Les deux peuvent coexister ! Le code choisit automatiquement Groq car c'est grat
 ---
 
 **🚀 Profitez de votre Assistant Chef IA GRATUIT et RAPIDE ! 🤖✨**
-
