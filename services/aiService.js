@@ -1,11 +1,22 @@
 import OpenAI from "openai";
+import Groq from "groq-sdk";
 
-// Initialize OpenAI client
+// Initialize AI clients (Groq preferred as it's free and faster!)
+const groq = process.env.GROQ_API_KEY
+  ? new Groq({
+      apiKey: process.env.GROQ_API_KEY,
+    })
+  : null;
+
 const openai = process.env.OPENAI_API_KEY 
   ? new OpenAI({
       apiKey: process.env.OPENAI_API_KEY,
     })
   : null;
+
+// Use Groq if available (free!), otherwise OpenAI
+const aiClient = groq || openai;
+const aiProvider = groq ? "Groq" : openai ? "OpenAI" : null;
 
 /**
  * Generate recipe suggestions using OpenAI GPT
@@ -24,9 +35,11 @@ export const generateRecipeSuggestions = async ({
   servings = 2, 
   lang = "en" 
 }) => {
-  if (!openai) {
-    throw new Error("OpenAI API key is not configured. Please set OPENAI_API_KEY in your environment variables.");
+  if (!aiClient) {
+    throw new Error("No AI provider configured. Please set GROQ_API_KEY (free!) or OPENAI_API_KEY in your environment variables.");
   }
+
+  console.log(`🤖 Using AI Provider: ${aiProvider}`);
 
   // Build the system prompt based on language
   const systemPrompts = {
@@ -151,10 +164,15 @@ Formatez votre réponse comme un objet JSON avec cette structure exacte:
   userPrompt += ` ${servingTexts[lang] || servingTexts.en}`;
 
   try {
-    console.log("🤖 Calling OpenAI with prompt:", userPrompt);
+    console.log(`🤖 Calling ${aiProvider} with prompt:`, userPrompt);
 
-    const completion = await openai.chat.completions.create({
-      model: process.env.OPENAI_MODEL || "gpt-4o-mini",
+    // Select the appropriate model based on provider
+    const model = groq 
+      ? (process.env.GROQ_MODEL || "llama-3.1-70b-versatile")  // Groq models
+      : (process.env.OPENAI_MODEL || "gpt-4o-mini");           // OpenAI models
+
+    const completion = await aiClient.chat.completions.create({
+      model: model,
       messages: [
         {
           role: "system",
@@ -171,7 +189,7 @@ Formatez votre réponse comme un objet JSON avec cette structure exacte:
     });
 
     const responseContent = completion.choices[0].message.content;
-    console.log("✅ OpenAI Response received");
+    console.log(`✅ ${aiProvider} Response received`);
 
     // Parse the JSON response
     let recipesData;
@@ -249,15 +267,15 @@ Formatez votre réponse comme un objet JSON avec cette structure exacte:
     };
 
   } catch (error) {
-    console.error("❌ OpenAI API Error:", error);
+    console.error(`❌ ${aiProvider} API Error:`, error);
     
     // Provide helpful error messages
     if (error.status === 401) {
-      throw new Error("Invalid OpenAI API key. Please check your configuration.");
+      throw new Error(`Invalid ${aiProvider} API key. Please check your configuration.`);
     } else if (error.status === 429) {
-      throw new Error("OpenAI API rate limit exceeded. Please try again later.");
+      throw new Error(`${aiProvider} API rate limit exceeded. Please try again later.`);
     } else if (error.code === 'ENOTFOUND' || error.code === 'ECONNREFUSED') {
-      throw new Error("Unable to connect to OpenAI API. Please check your internet connection.");
+      throw new Error(`Unable to connect to ${aiProvider} API. Please check your internet connection.`);
     }
     
     throw new Error(`AI service error: ${error.message}`);

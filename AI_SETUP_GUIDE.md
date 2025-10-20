@@ -217,3 +217,4 @@ Sur votre compte OpenAI, configurez :
 **Besoin d'aide ?** Consultez la [documentation OpenAI](https://platform.openai.com/docs) ou créez une issue sur GitHub.
 
 🍳 Bon appétit avec votre Assistant Chef IA ! 🤖✨
+

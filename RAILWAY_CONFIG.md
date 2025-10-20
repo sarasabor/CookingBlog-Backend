@@ -26,10 +26,10 @@ L'erreur **500 Internal Server Error** que vous rencontrez est causée par l'abs
 3. **Cliquez sur "Variables"** (dans le menu latéral)
 4. **Ajoutez ces 2 variables** :
 
-   | Variable | Valeur |
-   |----------|--------|
+   | Variable         | Valeur                           |
+   | ---------------- | -------------------------------- |
    | `OPENAI_API_KEY` | `sk-proj-votre-clé-complète-ici` |
-   | `OPENAI_MODEL` | `gpt-4o-mini` |
+   | `OPENAI_MODEL`   | `gpt-4o-mini`                    |
 
 5. **Cliquez sur "Add"** pour chaque variable
 6. **Railway redéploiera automatiquement** (environ 1-2 minutes)
@@ -112,11 +112,13 @@ Ou via l'interface web : Deployments → Dernier déploiement → View Logs
 **Erreurs courantes** :
 
 1. **"Invalid API Key"**
+
    - ✅ Vérifiez que la clé commence par `sk-proj-` ou `sk-`
    - ✅ Pas d'espaces avant/après
    - ✅ La clé est complète (environ 50-100 caractères)
 
 2. **"OpenAI API key is not configured"**
+
    - ✅ Assurez-vous d'avoir bien ajouté la variable sur Railway
    - ✅ Attendez que le redéploiement soit terminé
    - ✅ Rafraîchissez la page
@@ -164,6 +166,7 @@ railway logs --follow
 ```
 
 Vous verrez :
+
 - `🤖 Calling OpenAI with prompt:...`
 - `✅ OpenAI Response received`
 - `📦 Parsed OpenAI response:...`

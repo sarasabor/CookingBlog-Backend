@@ -336,15 +336,15 @@ export const getAISuggestions = async (req, res, next) => {
       return res.status(400).json({ message: "Prompt is required" });
     }
 
-    // Check if OpenAI API is configured
-    if (!process.env.OPENAI_API_KEY) {
-      console.warn("⚠️ OpenAI API key not configured, falling back to database recipes");
+    // Check if any AI API is configured (Groq is free!)
+    if (!process.env.GROQ_API_KEY && !process.env.OPENAI_API_KEY) {
+      console.warn("⚠️ No AI API key configured");
       
-      // Fallback to old behavior if API key is not set
+      // Fallback message
       const fallbackMessage = {
-        en: "AI service is not available. Please configure OpenAI API key to generate new recipes.",
-        fr: "Le service IA n'est pas disponible. Veuillez configurer la clé API OpenAI pour générer de nouvelles recettes.",
-        ar: "خدمة الذكاء الاصطناعي غير متاحة. يرجى تكوين مفتاح API OpenAI لإنشاء وصفات جديدة."
+        en: "AI service is not available. Please configure GROQ_API_KEY (free!) or OPENAI_API_KEY to generate new recipes.",
+        fr: "Le service IA n'est pas disponible. Veuillez configurer GROQ_API_KEY (gratuit !) ou OPENAI_API_KEY pour générer de nouvelles recettes.",
+        ar: "خدمة الذكاء الاصطناعي غير متاحة. يرجى تكوين GROQ_API_KEY (مجاني!) أو OPENAI_API_KEY لإنشاء وصفات جديدة."
       };
       
       return res.status(503).json({ 
