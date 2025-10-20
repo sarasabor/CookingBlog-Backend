@@ -3,6 +3,7 @@ import Review from "../models/Review.js";
 import { createError } from "../utils/error.js";
 import { cloudinary } from "../utils/cloudinary.js";
 import moodToTagsMap from "../utils/moodToTagsMap.js";
+import { generateRecipeSuggestions } from "../services/aiService.js";
 
 export const createRecipe = async (req, res, next) => {
   try {
@@ -335,168 +336,55 @@ export const getAISuggestions = async (req, res, next) => {
       return res.status(400).json({ message: "Prompt is required" });
     }
 
-    // Analyze the prompt for keywords
-    const promptLower = prompt.toLowerCase();
-    let detectedMood = mood;
-    let detectedIngredients = [...ingredients];
-    let detectedTags = [];
-
-    // Detect mood from prompt
-    const moodKeywords = {
-      stressed: ["stressed", "stress", "anxious", "anxiety", "stressé", "anxieux", "متوتر", "قلق"],
-      sad: ["sad", "depressed", "down", "lonely", "triste", "déprimé", "حزين", "كئيب"],
-      happy: ["happy", "joyful", "celebrate", "celebration", "heureux", "joyeux", "سعيد", "مبهج"],
-      tired: ["tired", "exhausted", "fatigue", "fatigué", "épuisé", "متعب", "مرهق"],
-      hungry: ["hungry", "starving", "famished", "affamé", "جائع"],
-      energetic: ["energetic", "active", "workout", "énergique", "actif", "نشيط"],
-      romantic: ["romantic", "date", "love", "romantique", "amour", "رومانسي", "حب"],
-      relaxed: ["relaxed", "calm", "peaceful", "détendu", "calme", "مسترخي", "هادئ"],
-      bored: ["bored", "boring", "ennuyé", "ennuyeux", "ملل"]
-    };
-
-    for (const [moodKey, keywords] of Object.entries(moodKeywords)) {
-      if (keywords.some(keyword => promptLower.includes(keyword))) {
-        detectedMood = moodKey;
-        break;
-      }
+    // Check if OpenAI API is configured
+    if (!process.env.OPENAI_API_KEY) {
+      console.warn("⚠️ OpenAI API key not configured, falling back to database recipes");
+      
+      // Fallback to old behavior if API key is not set
+      const fallbackMessage = {
+        en: "AI service is not available. Please configure OpenAI API key to generate new recipes.",
+        fr: "Le service IA n'est pas disponible. Veuillez configurer la clé API OpenAI pour générer de nouvelles recettes.",
+        ar: "خدمة الذكاء الاصطناعي غير متاحة. يرجى تكوين مفتاح API OpenAI لإنشاء وصفات جديدة."
+      };
+      
+      return res.status(503).json({ 
+        message: fallbackMessage[lang] || fallbackMessage.en,
+        recipes: []
+      });
     }
 
-    // Detect time/speed requirements
-    const quickKeywords = ["quick", "fast", "rapide", "vite", "سريع", "easy", "facile", "سهل"];
-    const isQuickRequest = quickKeywords.some(keyword => promptLower.includes(keyword));
-
-    // Detect common ingredients from prompt
-    const commonIngredients = {
-      chicken: ["chicken", "poulet", "دجاج"],
-      beef: ["beef", "boeuf", "لحم بقري"],
-      fish: ["fish", "poisson", "سمك"],
-      vegetables: ["vegetable", "veggie", "légume", "خضروات"],
-      pasta: ["pasta", "pâtes", "معكرونة"],
-      rice: ["rice", "riz", "أرز"]
-    };
-
-    for (const [ingredientKey, keywords] of Object.entries(commonIngredients)) {
-      if (keywords.some(keyword => promptLower.includes(keyword)) && !detectedIngredients.includes(ingredientKey)) {
-        detectedIngredients.push(ingredientKey);
-      }
-    }
-
-    // Build query
-    const query = {};
-    
-    // Add mood-based tags
-    if (detectedMood && moodToTagsMap[detectedMood]) {
-      detectedTags = moodToTagsMap[detectedMood];
-      query.tags = { $in: detectedTags };
-    }
-
-    // Add cook time filter if quick is requested
-    if (isQuickRequest) {
-      query.cookTime = { $lte: 30 };
-    }
-
-    // Add ingredients filter if detected
-    if (detectedIngredients.length > 0) {
-      query[`ingredients.name.${lang}`] = { $in: detectedIngredients };
-    }
-
-    console.log("🔍 Query:", JSON.stringify(query, null, 2));
-
-    // Fetch recipes
-    let recipes = await Recipe.find(query).limit(6);
-
-    // If no recipes found, try with just mood or remove filters
-    if (recipes.length === 0 && detectedMood) {
-      console.log("⚠️ No recipes with full criteria, trying mood only");
-      recipes = await Recipe.find({ 
-        tags: { $in: moodToTagsMap[detectedMood] } 
-      }).limit(6);
-    }
-
-    // If still no recipes, get some popular ones
-    if (recipes.length === 0) {
-      console.log("⚠️ No recipes found, returning popular recipes");
-      recipes = await Recipe.find({}).limit(6);
-    }
-
-    // Get ratings for recipes
-    const recipeIds = recipes.map(r => r._id);
-    const ratings = await Review.aggregate([
-      { $match: { recipeId: { $in: recipeIds } } },
-      {
-        $group: {
-          _id: "$recipeId",
-          averageRating: { $avg: "$rating" },
-        },
-      },
-    ]);
-
-    const ratingMap = ratings.reduce((acc, r) => {
-      acc[r._id.toString()] = r.averageRating;
-      return acc;
-    }, {});
-
-    // Sort by rating
-    recipes.sort((a, b) => {
-      const ratingA = ratingMap[a._id.toString()] || 0;
-      const ratingB = ratingMap[b._id.toString()] || 0;
-      return ratingB - ratingA;
+    // Use AI service to generate new recipes
+    const result = await generateRecipeSuggestions({
+      prompt,
+      mood,
+      ingredients,
+      servings,
+      lang
     });
 
-    // Generate AI message based on language
-    let aiMessage = "";
-    
-    if (lang === "fr") {
-      aiMessage = `Voici mes suggestions basées sur votre demande "${prompt}".\n\n`;
-      if (detectedMood) {
-        aiMessage += `J'ai détecté que vous vous sentez ${detectedMood === 'stressed' ? 'stressé(e)' : detectedMood === 'happy' ? 'heureux(se)' : detectedMood}. `;
-      }
-      if (isQuickRequest) {
-        aiMessage += `Je vous propose des recettes rapides (moins de 30 minutes). `;
-      }
-      if (detectedIngredients.length > 0) {
-        aiMessage += `J'ai trouvé des recettes avec: ${detectedIngredients.join(", ")}. `;
-      }
-      aiMessage += `\n\nCes ${recipes.length} recettes sont parfaites pour vous ! Bon appétit ! 🍽️`;
-    } else if (lang === "ar") {
-      aiMessage = `إليك اقتراحاتي بناءً على طلبك "${prompt}".\n\n`;
-      if (detectedMood) {
-        aiMessage += `لقد اكتشفت أنك تشعر بـ ${detectedMood}. `;
-      }
-      if (isQuickRequest) {
-        aiMessage += `أقترح عليك وصفات سريعة (أقل من 30 دقيقة). `;
-      }
-      if (detectedIngredients.length > 0) {
-        aiMessage += `وجدت وصفات مع: ${detectedIngredients.join("، ")}. `;
-      }
-      aiMessage += `\n\nهذه ${recipes.length} وصفات مثالية لك! بالهناء والشفاء! 🍽️`;
-    } else {
-      aiMessage = `Here are my suggestions based on your request "${prompt}".\n\n`;
-      if (detectedMood) {
-        aiMessage += `I detected that you're feeling ${detectedMood}. `;
-      }
-      if (isQuickRequest) {
-        aiMessage += `I'm suggesting quick recipes (under 30 minutes). `;
-      }
-      if (detectedIngredients.length > 0) {
-        aiMessage += `I found recipes with: ${detectedIngredients.join(", ")}. `;
-      }
-      aiMessage += `\n\nThese ${recipes.length} recipes are perfect for you! Enjoy! 🍽️`;
-    }
-
     res.status(200).json({
-      message: aiMessage,
-      recipes: recipes,
-      detectedContext: {
-        mood: detectedMood,
-        ingredients: detectedIngredients,
-        isQuick: isQuickRequest,
-        tags: detectedTags
-      }
+      message: result.message,
+      recipes: result.recipes,
+      isAIGenerated: true,
+      generatedAt: new Date().toISOString()
     });
 
   } catch (err) {
     console.error("❌ Error in getAISuggestions:", err);
-    next(err);
+    
+    // Send user-friendly error message
+    const errorMessages = {
+      en: "I apologize, but I'm having trouble generating recipes right now. Please try again in a moment.",
+      fr: "Je m'excuse, mais j'ai des difficultés à générer des recettes en ce moment. Veuillez réessayer dans un instant.",
+      ar: "أعتذر، لكنني أواجه صعوبة في إنشاء الوصفات الآن. يرجى المحاولة مرة أخرى بعد لحظة."
+    };
+    
+    const lang = req.headers["accept-language"] || "en";
+    
+    res.status(500).json({
+      message: errorMessages[lang] || errorMessages.en,
+      error: err.message,
+      recipes: []
+    });
   }
 };
