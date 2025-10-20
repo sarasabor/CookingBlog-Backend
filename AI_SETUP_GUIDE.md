@@ -180,11 +180,11 @@ Sur votre compte OpenAI, configurez :
 
 ### Exemples de Prompts :
 
-- *"Je suis stressé, que puis-je cuisiner pour me détendre ?"*
-- *"Plat rapide avec poulet et légumes pour 4 personnes"*
-- *"Dessert romantique pour un dîner à deux"*
-- *"Recette végétarienne réconfortante"*
-- *"Plat énergisant pour après le sport"*
+- _"Je suis stressé, que puis-je cuisiner pour me détendre ?"_
+- _"Plat rapide avec poulet et légumes pour 4 personnes"_
+- _"Dessert romantique pour un dîner à deux"_
+- _"Recette végétarienne réconfortante"_
+- _"Plat énergisant pour après le sport"_
 
 ## 🚀 Déploiement en Production
 
@@ -217,4 +217,3 @@ Sur votre compte OpenAI, configurez :
 **Besoin d'aide ?** Consultez la [documentation OpenAI](https://platform.openai.com/docs) ou créez une issue sur GitHub.
 
 🍳 Bon appétit avec votre Assistant Chef IA ! 🤖✨
-

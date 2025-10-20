@@ -40,24 +40,26 @@ Guidelines:
 - Include cooking time, difficulty level, and nutritional highlights
 - Be creative but practical
 
-Format your response as a JSON array with this exact structure:
-[
-  {
-    "title": "Recipe Name",
-    "description": "Brief description (2-3 sentences)",
-    "ingredients": [
-      {"name": "ingredient name", "quantity": "amount", "unit": "measurement"}
-    ],
-    "instructions": [
-      "Step 1 instruction",
-      "Step 2 instruction"
-    ],
-    "cookTime": 30,
-    "difficulty": "easy|medium|hard",
-    "tags": ["tag1", "tag2"],
-    "nutritionHighlights": "Brief nutrition info"
-  }
-]`,
+Format your response as a JSON object with this exact structure:
+{
+  "recipes": [
+    {
+      "title": "Recipe Name",
+      "description": "Brief description (2-3 sentences)",
+      "ingredients": [
+        {"name": "ingredient name", "quantity": "amount", "unit": "measurement"}
+      ],
+      "instructions": [
+        "Step 1 instruction",
+        "Step 2 instruction"
+      ],
+      "cookTime": 30,
+      "difficulty": "easy|medium|hard",
+      "tags": ["tag1", "tag2"],
+      "nutritionHighlights": "Brief nutrition info"
+    }
+  ]
+}`,
     fr: `Vous êtes un chef professionnel et expert culinaire. Votre rôle est de suggérer des recettes créatives, délicieuses et pratiques basées sur les demandes des utilisateurs.
 
 Directives:
@@ -68,24 +70,26 @@ Directives:
 - Incluez le temps de cuisson, le niveau de difficulté et les points nutritionnels
 - Soyez créatif mais pratique
 
-Formatez votre réponse comme un tableau JSON avec cette structure exacte:
-[
-  {
-    "title": "Nom de la recette",
-    "description": "Brève description (2-3 phrases)",
-    "ingredients": [
-      {"name": "nom de l'ingrédient", "quantity": "quantité", "unit": "mesure"}
-    ],
-    "instructions": [
-      "Instruction étape 1",
-      "Instruction étape 2"
-    ],
-    "cookTime": 30,
-    "difficulty": "facile|moyen|difficile",
-    "tags": ["tag1", "tag2"],
-    "nutritionHighlights": "Brève info nutritionnelle"
-  }
-]`,
+Formatez votre réponse comme un objet JSON avec cette structure exacte:
+{
+  "recipes": [
+    {
+      "title": "Nom de la recette",
+      "description": "Brève description (2-3 phrases)",
+      "ingredients": [
+        {"name": "nom de l'ingrédient", "quantity": "quantité", "unit": "mesure"}
+      ],
+      "instructions": [
+        "Instruction étape 1",
+        "Instruction étape 2"
+      ],
+      "cookTime": 30,
+      "difficulty": "facile|moyen|difficile",
+      "tags": ["tag1", "tag2"],
+      "nutritionHighlights": "Brève info nutritionnelle"
+    }
+  ]
+}`,
     ar: `أنت طاهٍ محترف وخبير في الطهي. دورك هو اقتراح وصفات إبداعية ولذيذة وعملية بناءً على طلبات المستخدمين.
 
 الإرشادات:
@@ -96,24 +100,26 @@ Formatez votre réponse comme un tableau JSON avec cette structure exacte:
 - قم بتضمين وقت الطهي ومستوى الصعوبة والنقاط الغذائية
 - كن مبدعاً ولكن عملياً
 
-قم بتنسيق ردك كمصفوفة JSON بهذا الهيكل بالضبط:
-[
-  {
-    "title": "اسم الوصفة",
-    "description": "وصف موجز (2-3 جمل)",
-    "ingredients": [
-      {"name": "اسم المكون", "quantity": "الكمية", "unit": "الوحدة"}
-    ],
-    "instructions": [
-      "تعليمات الخطوة 1",
-      "تعليمات الخطوة 2"
-    ],
-    "cookTime": 30,
-    "difficulty": "سهل|متوسط|صعب",
-    "tags": ["tag1", "tag2"],
-    "nutritionHighlights": "معلومات غذائية موجزة"
-  }
-]`
+قم بتنسيق ردك ككائن JSON بهذا الهيكل بالضبط:
+{
+  "recipes": [
+    {
+      "title": "اسم الوصفة",
+      "description": "وصف موجز (2-3 جمل)",
+      "ingredients": [
+        {"name": "اسم المكون", "quantity": "الكمية", "unit": "الوحدة"}
+      ],
+      "instructions": [
+        "تعليمات الخطوة 1",
+        "تعليمات الخطوة 2"
+      ],
+      "cookTime": 30,
+      "difficulty": "سهل|متوسط|صعب",
+      "tags": ["tag1", "tag2"],
+      "nutritionHighlights": "معلومات غذائية موجزة"
+    }
+  ]
+}`
   };
 
   // Build user prompt with context
@@ -171,11 +177,25 @@ Formatez votre réponse comme un tableau JSON avec cette structure exacte:
     let recipesData;
     try {
       const parsed = JSON.parse(responseContent);
+      console.log("📦 Parsed OpenAI response:", JSON.stringify(parsed).substring(0, 200));
+      
       // Handle both array and object with recipes array
-      recipesData = Array.isArray(parsed) ? parsed : (parsed.recipes || []);
+      if (Array.isArray(parsed)) {
+        recipesData = parsed;
+      } else if (parsed.recipes && Array.isArray(parsed.recipes)) {
+        recipesData = parsed.recipes;
+      } else {
+        console.error("❌ Unexpected response format:", parsed);
+        throw new Error("Invalid response format from AI");
+      }
+
+      if (!recipesData || recipesData.length === 0) {
+        throw new Error("No recipes generated by AI");
+      }
     } catch (parseError) {
       console.error("❌ Error parsing OpenAI response:", parseError);
-      throw new Error("Failed to parse AI response");
+      console.error("Response content:", responseContent);
+      throw new Error(`Failed to parse AI response: ${parseError.message}`);
     }
 
     // Transform AI recipes to match our application format
