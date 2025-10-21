@@ -201,8 +201,31 @@ Formatez votre réponse comme un objet JSON avec cette structure exacte:
     // Parse the JSON response
     let recipesData;
     try {
-      const parsed = JSON.parse(responseContent);
-      console.log("📦 Parsed OpenAI response:", JSON.stringify(parsed).substring(0, 200));
+      // Clean the response: remove markdown code blocks if present
+      let cleanedContent = responseContent.trim();
+      
+      // Remove markdown code blocks (```json ... ``` or ``` ... ```)
+      const codeBlockMatch = cleanedContent.match(/```(?:json)?\s*\n?([\s\S]*?)\n?```/);
+      if (codeBlockMatch) {
+        cleanedContent = codeBlockMatch[1].trim();
+      }
+      
+      // Remove any leading text before the JSON object
+      const jsonStart = cleanedContent.indexOf('{');
+      if (jsonStart > 0) {
+        cleanedContent = cleanedContent.substring(jsonStart);
+      }
+      
+      // Remove any trailing text after the JSON object
+      const jsonEnd = cleanedContent.lastIndexOf('}');
+      if (jsonEnd > 0 && jsonEnd < cleanedContent.length - 1) {
+        cleanedContent = cleanedContent.substring(0, jsonEnd + 1);
+      }
+
+      console.log("🧹 Cleaned response (first 200 chars):", cleanedContent.substring(0, 200));
+
+      const parsed = JSON.parse(cleanedContent);
+      console.log("📦 Parsed AI response:", JSON.stringify(parsed).substring(0, 200));
       
       // Handle both array and object with recipes array
       if (Array.isArray(parsed)) {
