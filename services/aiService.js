@@ -19,6 +19,46 @@ const aiClient = groq || openai;
 const aiProvider = groq ? "Groq" : openai ? "OpenAI" : null;
 
 /**
+ * Detect if user wants recipes or just conversation
+ */
+const detectRecipeIntent = async (prompt, lang = "en") => {
+  const lowerPrompt = prompt.toLowerCase();
+  
+  // Keywords that indicate recipe request
+  const recipeKeywords = {
+    en: ['recipe', 'cook', 'make', 'prepare', 'dish', 'meal', 'food', 'cuisine', 'eat', 'dinner', 'lunch', 'breakfast', 'dessert', 'snack', 'suggest', 'recommend', 'want', 'need', 'craving', 'hungry'],
+    fr: ['recette', 'cuisiner', 'faire', 'préparer', 'plat', 'repas', 'nourriture', 'cuisine', 'manger', 'dîner', 'déjeuner', 'petit-déjeuner', 'dessert', 'collation', 'suggérer', 'recommander', 'veux', 'besoin', 'envie', 'faim'],
+    ar: ['وصفة', 'طبخ', 'صنع', 'تحضير', 'طبق', 'وجبة', 'طعام', 'أكل', 'عشاء', 'غداء', 'فطور', 'حلويات', 'اقتراح', 'أريد', 'أحتاج', 'جائع']
+  };
+  
+  // Conversational keywords that indicate NO recipe request
+  const conversationalKeywords = {
+    en: ['hello', 'hi', 'hey', 'thanks', 'thank you', 'bye', 'goodbye', 'how are you', 'what is', 'who are you', 'help', 'explain', 'tell me about', 'what does', 'why', 'when', 'where', 'how to', 'can you'],
+    fr: ['bonjour', 'salut', 'merci', 'au revoir', 'comment vas-tu', 'qui es-tu', 'aide', 'explique', 'dis-moi', 'qu\'est-ce', 'pourquoi', 'quand', 'où', 'comment'],
+    ar: ['مرحبا', 'السلام', 'شكرا', 'وداعا', 'كيف حالك', 'من أنت', 'مساعدة', 'اشرح', 'أخبرني', 'ما هو', 'لماذا', 'متى', 'أين']
+  };
+  
+  const keywords = recipeKeywords[lang] || recipeKeywords.en;
+  const conversational = conversationalKeywords[lang] || conversationalKeywords.en;
+  
+  // Check if it's clearly conversational
+  const isConversational = conversational.some(keyword => lowerPrompt.includes(keyword));
+  if (isConversational && lowerPrompt.length < 50) {
+    return false; // It's just conversation
+  }
+  
+  // Check if it's a recipe request
+  const isRecipe = keywords.some(keyword => lowerPrompt.includes(keyword));
+  
+  // Default: if mentions ingredients or mood, assume recipe request
+  if (!isRecipe && !isConversational) {
+    return lowerPrompt.length > 20; // Longer messages are likely recipe requests
+  }
+  
+  return isRecipe;
+};
+
+/**
  * Generate recipe suggestions using OpenAI GPT
  * @param {Object} params - Parameters for recipe generation
  * @param {string} params.prompt - User's request in natural language
@@ -40,6 +80,9 @@ export const generateRecipeSuggestions = async ({
   }
 
   console.log(`🤖 Using AI Provider: ${aiProvider}`);
+  
+  // Step 1: Detect if user wants recipes or just conversation
+  const isRecipeRequest = await detectRecipeIntent(prompt, lang);
 
   // Build the system prompt based on language
   const systemPrompts = {
@@ -190,12 +233,57 @@ Formatez votre réponse comme un objet JSON avec cette structure exacte:
 
   try {
     console.log(`🤖 Calling ${aiProvider} with prompt:`, userPrompt);
+    console.log(`📋 Intent detected: ${isRecipeRequest ? 'RECIPE REQUEST' : 'CONVERSATION'}`);
 
     // Select the appropriate model based on provider
     const model = groq 
       ? (process.env.GROQ_MODEL || "llama-3.3-70b-versatile")  // Groq models (updated to latest)
       : (process.env.OPENAI_MODEL || "gpt-4o-mini");           // OpenAI models
 
+    // If it's NOT a recipe request, just have a conversation
+    if (!isRecipeRequest) {
+      const conversationPrompt = {
+        en: `You are a friendly AI chef assistant. The user just said: "${prompt}". 
+Respond naturally and warmly as a chef would. Keep it brief and conversational.
+Do NOT generate recipes unless specifically asked.
+If they're just greeting you, saying thanks, or asking a simple question, just respond appropriately without recipes.`,
+        fr: `Vous êtes un assistant chef IA amical. L'utilisateur vient de dire: "${prompt}".
+Répondez naturellement et chaleureusement comme un chef le ferait. Soyez bref et conversationnel.
+NE générez PAS de recettes sauf si on vous le demande spécifiquement.
+S'ils vous saluent, vous remercient ou posent une question simple, répondez simplement sans recettes.`,
+        ar: `أنت مساعد طاهٍ ذكي ودود. قال المستخدم للتو: "${prompt}".
+أجب بشكل طبيعي ودافئ كما يفعل الطاهي. كن موجزاً ومحادثاً.
+لا تقم بإنشاء وصفات إلا إذا طُلب منك ذلك على وجه التحديد.
+إذا كانوا يحيونك فقط أو يشكرونك أو يطرحون سؤالاً بسيطاً، فقط أجب بشكل مناسب بدون وصفات.`
+      };
+
+      const completion = await aiClient.chat.completions.create({
+        model: model,
+        messages: [
+          {
+            role: "system",
+            content: conversationPrompt[lang] || conversationPrompt.en
+          },
+          {
+            role: "user",
+            content: prompt
+          }
+        ],
+        temperature: 0.7,
+        max_tokens: 200
+      });
+
+      const conversationResponse = completion.choices[0].message.content;
+      console.log(`✅ ${aiProvider} Conversation Response: ${conversationResponse.substring(0, 100)}...`);
+
+      return {
+        message: conversationResponse,
+        recipes: [],
+        isConversation: true
+      };
+    }
+
+    // If it IS a recipe request, generate recipes with JSON format
     // Build completion options
     const completionOptions = {
       model: model,
