@@ -43,15 +43,20 @@ export const generateRecipeSuggestions = async ({
 
   // Build the system prompt based on language
   const systemPrompts = {
-    en: `You are a professional chef and culinary expert. Your role is to suggest creative, delicious, and practical recipes based on user requests. 
+    en: `You are a professional chef and culinary expert with expertise in cuisines from around the world. Your role is to suggest creative, delicious, and practical recipes based on user requests.
+
+IMPORTANT: Each time you generate recipes, they MUST be completely different from previous suggestions. Think creatively and explore diverse cuisines, cooking techniques, and flavor profiles.
 
 Guidelines:
-- Generate 3 unique and diverse recipe suggestions
+- Generate 3 UNIQUE and DIVERSE recipe suggestions that are DIFFERENT each time
+- Explore different cuisines: Mediterranean, Asian, Latin American, Middle Eastern, African, European, etc.
+- Vary cooking methods: grilling, roasting, steaming, sautéing, baking, braising, etc.
+- Mix difficulty levels across the 3 recipes
 - Each recipe should be complete with ingredients and instructions
 - Consider the user's mood, available ingredients, and preferences
 - Provide recipes that are realistic and achievable
 - Include cooking time, difficulty level, and nutritional highlights
-- Be creative but practical
+- Be CREATIVE and INNOVATIVE - surprise the user with unexpected but delicious combinations
 
 Format your response as a JSON object with this exact structure:
 {
@@ -73,15 +78,20 @@ Format your response as a JSON object with this exact structure:
     }
   ]
 }`,
-    fr: `Vous êtes un chef professionnel et expert culinaire. Votre rôle est de suggérer des recettes créatives, délicieuses et pratiques basées sur les demandes des utilisateurs.
+    fr: `Vous êtes un chef professionnel et expert culinaire avec une expertise dans les cuisines du monde entier. Votre rôle est de suggérer des recettes créatives, délicieuses et pratiques basées sur les demandes des utilisateurs.
+
+IMPORTANT: À chaque fois que vous générez des recettes, elles DOIVENT être complètement différentes des suggestions précédentes. Pensez de manière créative et explorez diverses cuisines, techniques de cuisson et profils de saveurs.
 
 Directives:
-- Générez 3 suggestions de recettes uniques et diversifiées
+- Générez 3 suggestions de recettes UNIQUES et DIVERSIFIÉES qui sont DIFFÉRENTES à chaque fois
+- Explorez différentes cuisines: méditerranéenne, asiatique, latino-américaine, moyen-orientale, africaine, européenne, etc.
+- Variez les méthodes de cuisson: grillades, rôtissage, vapeur, sauté, cuisson au four, braisage, etc.
+- Mélangez les niveaux de difficulté parmi les 3 recettes
 - Chaque recette doit être complète avec ingrédients et instructions
 - Considérez l'humeur de l'utilisateur, les ingrédients disponibles et les préférences
 - Fournissez des recettes réalistes et réalisables
 - Incluez le temps de cuisson, le niveau de difficulté et les points nutritionnels
-- Soyez créatif mais pratique
+- Soyez CRÉATIF et INNOVANT - surprenez l'utilisateur avec des combinaisons inattendues mais délicieuses
 
 Formatez votre réponse comme un objet JSON avec cette structure exacte:
 {
@@ -135,7 +145,14 @@ Formatez votre réponse comme un objet JSON avec cette structure exacte:
 }`
   };
 
-  // Build user prompt with context
+  // Build user prompt with context and randomization
+  const timestamp = Date.now();
+  const randomSeed = Math.floor(Math.random() * 1000);
+  
+  // Add variety elements to ensure different recipes each time
+  const cuisineStyles = ['traditional', 'fusion', 'modern', 'rustic', 'gourmet', 'comfort food', 'healthy', 'indulgent'];
+  const randomStyle = cuisineStyles[Math.floor(Math.random() * cuisineStyles.length)];
+  
   let userPrompt = prompt;
   
   if (mood) {
@@ -162,6 +179,14 @@ Formatez votre réponse comme un objet JSON avec cette structure exacte:
     ar: `أحتاج للطهي لـ ${servings} ${servings === 1 ? 'شخص' : 'أشخاص'}.`
   };
   userPrompt += ` ${servingTexts[lang] || servingTexts.en}`;
+  
+  // Add creativity prompt with randomization
+  const creativityTexts = {
+    en: `Please suggest ${randomStyle} style recipes. Make them creative and different from typical recipes. Request ID: ${randomSeed}`,
+    fr: `Veuillez suggérer des recettes de style ${randomStyle}. Rendez-les créatives et différentes des recettes typiques. ID de demande: ${randomSeed}`,
+    ar: `يرجى اقتراح وصفات بأسلوب ${randomStyle}. اجعلها إبداعية ومختلفة عن الوصفات النموذجية. معرف الطلب: ${randomSeed}`
+  };
+  userPrompt += ` ${creativityTexts[lang] || creativityTexts.en}`;
 
   try {
     console.log(`🤖 Calling ${aiProvider} with prompt:`, userPrompt);
@@ -184,8 +209,9 @@ Formatez votre réponse comme un objet JSON avec cette structure exacte:
           content: userPrompt
         }
       ],
-      temperature: 0.8,
-      max_tokens: 2500
+      temperature: 1.0, // Maximum creativity for diverse recipes
+      max_tokens: 2500,
+      top_p: 0.95 // Nucleus sampling for more variety
     };
 
     // Only add response_format for OpenAI (Groq doesn't support it)
